@@ -14,15 +14,18 @@ class MulticastPingPong(DatagramProtocol):
         self.transport.joinGroup("228.0.0.5")
 
     def datagramReceived(self, datagram, address):
-        print("Datagram %s received from %s" % (repr(datagram), repr(address)))
-        if datagram == "Client: Ping":
+        print("Datagram %s received from %s" % (datagram.decode('utf-8'), repr(address)))
+        if datagram.decode('utf-8') == "Client: Ping":
             # Rather than replying to the group multicast address, we send the
             # reply directly (unicast) to the originating port:
-            self.transport.write("Server: Pong", address)
+            self.transport.write(bytes("Server: Pong",'utf-8'), ("228.0.0.5",8005))
+        if datagram.decode('utf-8') == "Hello World":
+            # Rather than replying to the group multicast address, we send the
+            # reply directly (unicast) to the originating port:
+            self.transport.write(bytes("Hello client!",'utf-8'), ("228.0.0.5",8005))
 
 
 # We use listenMultiple=True so that we can run MulticastServer.py and
 # MulticastClient.py on same machine:
-reactor.listenMulticast(8005, MulticastPingPong(),
-                        listenMultiple=True)
+reactor.listenMulticast(8005, MulticastPingPong(), listenMultiple=True)
 reactor.run()
